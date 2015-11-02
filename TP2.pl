@@ -146,7 +146,10 @@ funcrec2(Tot,P,K,S_k) :- member(pieza(K,C),P), C > 0, Totmk is Tot - K, Totmk >=
 % todosConstruir1(+Total, +Piezas, -Soluciones, -N), donde Soluciones representa una lista con todas las
 %  soluciones de longitud Total obtenidas con construir1/3, y N indica la cantidad de soluciones totales.
 
-todosConstruir1(_, _, _, _):- fail.
+%% para medir tiempo
+%% hacemos time(todosConstruir1(5,[pieza(1,5),pieza(5,1)],S,N))
+
+todosConstruir1(Tot, P, S, N):- setof(X, construir1(Tot,P,X), S), length(S,N).
 
 
 %%% Ejercicio 9
@@ -154,7 +157,7 @@ todosConstruir1(_, _, _, _):- fail.
 % todosConstruir2(+Total, +Piezas, -Soluciones, -N), donde Soluciones representa una lista con todas
 %  las soluciones de longitud Total obtenidas con construir2/3, y N indica la cantidad de soluciones totales.
 
-todosConstruir2(_, _, _, _):- fail.
+todosConstruir2(Tot, P, S, N):- setof(X, construir2(Tot,P,X), S), length(S,N).
 
 
 % ####################################
