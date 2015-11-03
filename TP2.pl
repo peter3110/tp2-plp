@@ -75,8 +75,9 @@ generar(Tot,P,S) :- append(_,[pieza(X,_)|_],P), Tot2 is Tot-X, Tot2 >= 0,
 %			  Observacion: corto a recursion en el arbol para no repetir soluciones iguales
 
 cumpleLimite(_,[]).
-cumpleLimite(P,S):- append(A1,[pieza(X,C_disp)|B1],P), C_disp > 0, append(A2,[X|B2],S), C_new is C_disp - 1,
-					append(A1,[pieza(X,C_new)|B1],P2), append(A2,B2,S2), cumpleLimite(P2,S2), !.
+%% cumpleLimite(P,S):- append(A1,[pieza(X,C_disp)|B1],P), C_disp > 0, append(A2,[X|B2],S), C_new is C_disp - 1,
+%% 					append(A1,[pieza(X,C_new)|B1],P2), append(A2,B2,S2), cumpleLimite(P2,S2), !.
+cumpleLimite(P,[X|S]) :- append(A1,[pieza(X,C)|A2],P), C > 0, Cm1 is C-1, append(A1,[pieza(X,Cm1)|A2],P2), cumpleLimite(P2,S).
 
 %%% Ejercicio 6
 
