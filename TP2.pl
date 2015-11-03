@@ -101,10 +101,30 @@ construir1(Tot,P,S):- generar(Tot,P,S), cumpleLimite(P,S).%, asserta(construido(
 %  No se espera que las soluciones aparezcan en el mismo orden entre construir1/3 y construir2/3,
 %  pero sí, sean las mismas.
 
-:- dynamic dp/3. % dp(Tot,P,K,S) : en la solucion S se usan piezas de P de largo <= K para sumar Tot
-				 % llamo a funcrec con K = maximo valor de pieza que puedo utilizar.
-construir2(Tot,P,S) :- append(_,[pieza(Kmax,_)],P), funcrec(Tot,P,Kmax,S).
-funcrec(Tot,P,Kmax,S) :- funcrec2(Tot,P,Kmax,S), retractall(dp).
+% Comentario:  si el tamanio maximo de las piezas es cero, entonces la lista vacia verifica
+% Si no hay piezas de tamnio K en P, llamo recursivamente con los mismos parametros, pero usando como
+% maximo piezas de tamanio K-1.
+% Si hay al menos una pieza de tamanio K en P, pruebo todas las posiciones en las que podria
+% colocar tal ficha de tamanio K en la solucion (posiciones 0..Tot-K), hago PI = P \ {K}, y llamo
+% recursivamente a las subsolucion del intervalo de la izquierda: Asi obtengo una solucion S1.
+% Luego, modifico PD = PI \ {piezas utilizadas en SI}. Y llamo recursivamente con Tot - Tot2 - K y con
+% las fichas que quedaron disponibles en PD.
+% Ademas, cada vez que un llamado recursivo es exitoso, me guardo en la(s) solucion(es) obtenida(s).
+
+:- dynamic dp/3. % dp(Tot,K,S) : en la solucion S se usan piezas de la lista original P de largo <= K para sumar Tot
+				 % llamo a construir2dp con K = maximo valor de pieza que se puede utilizar.
+construir2(Tot,P,S) :- retractall(dp(_,_,_)), append(_,[pieza(Kmax,_)],P), construir2dp(Tot,P,Kmax,S2), 
+					   append(S2,[],S).
+
+construir2dp(0,_,_,[]).
+construir2dp(Tot,_,K,S) :- dp(Tot,K,S).
+construir2dp(Tot,P,K,S) :- Tot > 0, K > 0, Km1 is K - 1, construir2dp(Tot,P,Km1,S), 
+									not(dp(Tot,K,S)), asserta(dp(Tot,K,S)).
+construir2dp(Tot,P,K,S) :- Tot > 0, K > 0, member(pieza(K,C),P), C > 0 , Km1 is K - 1, Totmk is Tot - K,
+									between(0,Totmk,TotI), decrementar(P,[K],PI), construir2dp(TotI,PI,Km1,SI),
+									TotD is Totmk - TotI, decrementar(PI,SI,PD), construir2dp(TotD,P,K,SD),
+									append(SI,[K|SD],S), not(dp(Tot,K,S)), asserta(dp(Tot,K,S)).
+
 
 % Comentario: funcion auxiliar: decrementar(Piezas,Sol,Res) quita de Piezas las piezas de los tamaños que
 % hay indicados en Sol (una lista de tamanios).
@@ -116,42 +136,6 @@ decrementar(P,[K|S],P2) :- append(A,[pieza(K,X)|B],P), X>1, Xm1 is X - 1, append
 						   decrementar(Aux,S,P2), !.
 decrementar(P,[K|S],P2) :- append(A,[pieza(K,1)|B],P), append(A,B,Aux), decrementar(Aux,S,P2), !.
 
-% Comentario:  si el tamanio maximo de las piezas es cero, entonces la lista vacia verifica
-% Si no hay piezas de tamnio K en P, llamo recursivamente con los mismos parametros, pero usando como
-% maximo piezas de tamanio K-1.
-% Si hay al menos una pieza de tamanio K en P, pruebo todas las posiciones en las que podria
-% colocar tal ficha de tamanio K en la solucion (posiciones 0..Tot-K), hago P2 = P \ {K}, y llamo
-% recursivamente a las subsolucion del intervalo de la izquierda: Asi obtengo una solucion S1.
-% Luego, modifico P3 = P2 \ {piezas utilizadas en S1}. Y llamo recursivamente con Tot - Tot2 - K y con
-% las fichas que quedaron disponibles en P3.
-% Ademas, cada vez que un llamado recursivo es exitoso, me guardo en "dynamic dp" la(s) solucion(es)
-% obtenida(s).
-funcrec2(0,_,_,[]).
-funcrec2(Tot,_,K,S_k) :- dp(Tot,K,S_k).
-funcrec2(Tot,P,K,S_k) :- K > 0, not(member(pieza(K,_),P)), Km1 is K - 1, funcrec2(Tot,P,Km1,S_k),
-						 asserta(dp(Tot,Km1,S_k)).
-funcrec2(Tot,P,K,S_k) :- member(pieza(K,C),P), C > 0, Totmk is Tot - K, Totmk >= 0, Km1 is K - 1,
-						 between(0,Totmk, Tot2), decrementar(P,[K],P2), funcrec2(Tot2, P2, Km1, S1),
-
-						 asserta(dp(Tot2,Km1,S1)), decrementar(P2,S1,P3), Tot3 is Tot - Tot2 - K, Tot3 >= 0,
-
-						 funcrec2(Tot3, P3, K, S2), asserta(dp(Tot3,K,S2)),
-						 append(S1,[K|S2],S_k), asserta(dp(Tot,K,S_k)), !.
-
-%% OTRA VERSION
-
-construir3(Tot,P,S) :- retractall(dp(_,_,_)), append(_,[pieza(Kmax,_)],P), construir3dp(Tot,P,Kmax,S), cumpleLimite(P,S).
-
-construir3dp(0,_,_,[]).
-construir3dp(Tot,_,K,S) :- dp(Tot,K,S).
-construir3dp(Tot,P,K,S) :- Tot > 0, K > 0, Km1 is K - 1, construir3dp(Tot,P,Km1,S), not(dp(Tot,K,S)), asserta(dp(Tot,K,S)).
-construir3dp(Tot,P,K,S) :- Tot > 0, K > 0, member(pieza(K,C),P), C > 0 , Km1 is K - 1, Totmk is Tot - K,
-															between(0,Totmk,TotI), decrementar(P,[K],PI), construir3dp(TotI,PI,Km1,SI),
-															TotD is Totmk - TotI, decrementar(PI,SI,PD), construir3dp(TotD,P,K,SD),
-															append(SI,[K|SD],S), not(dp(Tot,K,S)), asserta(dp(Tot,K,S)).
-
-
-todosConstruir3(Tot, P, S, N):- setof(X, construir3(Tot,P,X), S), length(S,N).
 
 % ####################################
 % Comparación de resultados y tiempos
@@ -164,6 +148,8 @@ todosConstruir3(Tot, P, S, N):- setof(X, construir3(Tot,P,X), S), length(S,N).
 
 %% para medir tiempo
 %% hacemos time(todosConstruir1(5,[pieza(1,5),pieza(5,1)],S,N))
+
+todosconstruir2(Tot, P, S, N):- setof(X, construir2(Tot,P,X), S), length(S,N).
 
 todosConstruir1(Tot, P, S, N):- setof(X, construir1(Tot,P,X), S), length(S,N).
 
