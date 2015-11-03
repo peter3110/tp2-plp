@@ -9,9 +9,28 @@
 % Comentario: como caso base, decimos que en un intervalo vacio no hay solucion
 % 	si T es la solucion para listaNats entre H+1 y LSup, entonces [H|T] es solucion para listaNats
 % 	entre H y LSup
+
 listaNats(LInf,LSup,[])    :- LInf > LSup.
 listaNats(LInf,LSup,[H|T]) :- LInf =< LSup, H is LInf, Hm1 is H+1, listaNats(Hm1,LSup,T).
 
+%% Ejemplos:
+
+%% ?- listaNats(5,10,S).
+%% S = [5, 6, 7, 8, 9, 10] ;
+%% false.
+
+%% ?- listaNats(1,2,[1,2]).
+%% true ;
+%% false.
+
+%% ?- listaNats(2,1,[1,2]).
+%% false.
+
+%% ?- listaNats(10,3,S).
+%% S = [] .
+
+%% ?- listaNats(4,3,[3,4]).
+%% false.
 
 %%% Ejercicio 2
 
@@ -23,6 +42,20 @@ listaNats(LInf,LSup,[H|T]) :- LInf =< LSup, H is LInf, Hm1 is H+1, listaNats(Hm1
 %			  piezas de los tamaños especificados.
 nPiezasDeCada(_,[],[]).
 nPiezasDeCada(C,[T1|T],[pieza(T1,C)|P]) :- nPiezasDeCada(C,T,P).
+
+%% Ejemplos:
+
+%% ?- nPiezasDeCada(4,[1,2,4,7],S).
+%% S = [pieza(1, 4), pieza(2, 4), pieza(4, 4), pieza(7, 4)] ;
+%% false.
+
+%% ?- nPiezasDeCada(3,[3,7,10],S).
+%% S = [pieza(3, 3), pieza(7, 3), pieza(10, 3)] ;
+%% false.
+
+%% ?- nPiezasDeCada(1,[1,2,3],S).
+%% S = [pieza(1, 1), pieza(2, 1), pieza(3, 1)] ;
+%% false.
 
 %%% Ejercicio 3
 
@@ -39,7 +72,23 @@ resumenPiezas([T1|S], P) :- resumenPiezas(S,O), not(append(_,[pieza(T1,_)|_],O))
 resumenPiezas([T1|S], P) :- resumenPiezas(S,O), append(A,[pieza(T1,C)|B],O), Cm1 is C+1,
 							append(A,[pieza(T1,Cm1)|B],P).
 
+%% Ejemplos:
 
+%% ?- resumenPiezas([1,2,2,3,5,2,3,1,7], L).
+%% L = [pieza(5, 1), pieza(2, 3), pieza(3, 2), pieza(1, 2), pieza(7, 1)] ;
+%% false.
+
+%% ?- resumenPiezas([1,2,3,4,5], L).
+%% L = [pieza(1, 1), pieza(2, 1), pieza(3, 1), pieza(4, 1), pieza(5, 1)] ;
+%% false.
+
+%% ?- resumenPiezas([78,90,34,20,20,34,90,78], L).
+%% L = [pieza(20, 2), pieza(34, 2), pieza(90, 2), pieza(78, 2)] ;
+%% false.
+
+%% ?- resumenPiezas([5,5,5,5,5,5,5,5,5,5], L).
+%% L = [pieza(5, 10)] ;
+%% false.
 
 % ####################################
 % Enfoque naïve
@@ -62,6 +111,30 @@ generar(Tot,_,[]):- Tot =< 0.
 generar(Tot,P,S) :- append(_,[pieza(X,_)|_],P), Tot2 is Tot-X, Tot2 >= 0,
 					generar(Tot2,P,H), append(H,[X],S).
 
+%% Ejemplos:
+
+%% ?- generar(5,[pieza(1,2),pieza(2,2),pieza(5,1)],S).
+%% S = [1, 1, 1, 1, 1] ;
+%% S = [2, 1, 1, 1] ;
+%% S = [1, 2, 1, 1] ;
+%% S = [1, 1, 2, 1] ;
+%% S = [2, 2, 1] ;
+%% S = [1, 1, 1, 2] ;
+%% S = [2, 1, 2] ;
+%% S = [1, 2, 2] ;
+%% S = [5] ;
+%% false.
+
+%% ?- generar(5,[pieza(10,2),pieza(12,2),pieza(15,1)],S).
+%% false.
+
+%% ?- generar(90,[pieza(10,10)],S).
+%% S = [10, 10, 10, 10, 10, 10, 10, 10, 10] ;
+%% false.
+
+%% ?- generar(90,[pieza(10,3)],S).
+%% S = [10, 10, 10, 10, 10, 10, 10, 10, 10] ;
+%% false.
 
 %%% Ejercicio 5
 
@@ -69,25 +142,77 @@ generar(Tot,P,S) :- append(_,[pieza(X,_)|_],P), Tot2 is Tot-X, Tot2 >= 0,
 % no exceda las cantidades disponibles indicadas en Piezas.
 
 % Comentario: chequeo que para cada pieza utilizada en S se verifique que se utilizan como mucho
-%			  la cantidad de piezas de ese tipo que hay disponibles en P. Corto la recursion cuando
-%			  ya probe todas las combinaciones posibles.
+%			  la cantidad de piezas de ese tipo que hay disponibles en P.
 %			  Asumo que S fue construido a partir de "generar": S = [X1,X2,X3,X3,..]
-%			  Observacion: corto a recursion en el arbol para no repetir soluciones iguales
 
 cumpleLimite(_,[]).
-%% cumpleLimite(P,S):- append(A1,[pieza(X,C_disp)|B1],P), C_disp > 0, append(A2,[X|B2],S), C_new is C_disp - 1,
-%% 					append(A1,[pieza(X,C_new)|B1],P2), append(A2,B2,S2), cumpleLimite(P2,S2), !.
 cumpleLimite(P,[X|S]) :- append(A1,[pieza(X,C)|A2],P), C > 0, Cm1 is C-1, append(A1,[pieza(X,Cm1)|A2],P2), cumpleLimite(P2,S).
+
+%% Ejemplos:
+
+%% ?- cumpleLimite([pieza(5,5)],[5,5,5,5,5]).
+%% true ;
+%% false.
+
+%% ?- cumpleLimite([pieza(1,2),pieza(2,2),pieza(5,1)],[1,2,1,1]).
+%% false.
+
+%% ?- cumpleLimite([pieza(1,2),pieza(2,2),pieza(5,1)],[1,2,2]).
+%% true ;
+%% false.
+
+%% ?- cumpleLimite([pieza(1,200)],[1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]).
+%% true ;
+%% false.
+
+%% ?- cumpleLimite([pieza(1,200)],[1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,2]).
+%% false.
+
+
 
 %%% Ejercicio 6
 
 % construir1(+Total,+Piezas,-Solución), donde Solución representa una lista de piezas cuyos valores
 %  suman Total y, además, las cantidades utilizadas de cada pieza no exceden los declarados en Piezas.
 
-% Comentario: aprovecho las dos funciones anteriores.
+% Comentario: aprovecho las dos funciones anteriores, utilizando la tecnica de generate & test.
 
-%construir1(Tot,P,S):- construido(Tot,P,S), !.
-construir1(Tot,P,S):- generar(Tot,P,S), cumpleLimite(P,S).%, asserta(construido(Tot,P,S)).
+construir1(Tot,P,S):- generar(Tot,P,S), cumpleLimite(P,S).
+
+%% Ejemplos:
+
+%% ?- construir1(5,[pieza(1,3),pieza(2,2),pieza(3,2),pieza(5,1)],S).
+%% S = [2, 1, 1, 1] ;
+%% S = [1, 2, 1, 1] ;
+%% S = [3, 1, 1] ;
+%% S = [1, 1, 2, 1] ;
+%% S = [2, 2, 1] ;
+%% S = [1, 3, 1] ;
+%% S = [1, 1, 1, 2] ;
+%% S = [2, 1, 2] ;
+%% S = [1, 2, 2] ;
+%% S = [3, 2] ;
+%% S = [1, 1, 3] ;
+%% S = [2, 3] ;
+%% S = [5] ;
+%% false.
+
+%% ?- construir1(5,[pieza(1,3)],S).
+%% false.
+
+%% ?- construir1(11,[pieza(2,4),pieza(3,1)],S).
+%% S = [3, 2, 2, 2, 2] ;
+%% S = [2, 3, 2, 2, 2] ;
+%% S = [2, 2, 3, 2, 2] ;
+%% S = [2, 2, 2, 3, 2] ;
+%% S = [2, 2, 2, 2, 3] ;
+%% false.
+
+%% ?- construir1(5,[pieza(2,3)],S).
+%% false.
+
+%% ?- construir1(3,[pieza(4,3),pieza(5,10),pieza(10,10),pieza(15,5)],S).
+%% false.
 
 
 % ####################################
@@ -126,7 +251,7 @@ construir2dp(Tot,P,K,S) :- Tot > 0, K > 0, member(pieza(K,C),P), C > 0 , Km1 is 
 									append(SI,[K|SD],S), not(dp(Tot,K,S)), asserta(dp(Tot,K,S)).
 
 
-% Comentario: funcion auxiliar: decrementar(Piezas,Sol,Res) quita de Piezas las piezas de los tamaños que
+% Comentario: funcion auxiliar: decrementar(+Piezas,+Sol,-Res) quita de Piezas las piezas de los tamaños que
 % hay indicados en Sol (una lista de tamanios).
 % REQUIERE: Que en P haya una cantidad de piezas X >= que la cantidad de piezas X que hay en S
 decrementar([],[],[]).
@@ -135,6 +260,42 @@ decrementar([],_,[]).
 decrementar(P,[K|S],P2) :- append(A,[pieza(K,X)|B],P), X>1, Xm1 is X - 1, append(A,[pieza(K,Xm1)|B], Aux),
 						   decrementar(Aux,S,P2), !.
 decrementar(P,[K|S],P2) :- append(A,[pieza(K,1)|B],P), append(A,B,Aux), decrementar(Aux,S,P2), !.
+
+
+%% Ejemplos
+
+%% ?- construir2(5,[pieza(1,3),pieza(2,2),pieza(3,2),pieza(5,1)],S).
+%% S = [2, 1, 1, 1] ;
+%% S = [2, 2, 1] ;
+%% S = [2, 1, 2] ;
+%% S = [1, 2, 1, 1] ;
+%% S = [1, 2, 2] ;
+%% S = [1, 1, 2, 1] ;
+%% S = [1, 1, 1, 2] ;
+%% S = [3, 2] ;
+%% S = [3, 1, 1] ;
+%% S = [1, 3, 1] ;
+%% S = [2, 3] ;
+%% S = [1, 1, 3] ;
+%% S = [5] ;
+%% false.
+
+%% ?- construir2(5,[pieza(1,3)],S).
+%% false.
+
+%% ?- construir2(11,[pieza(2,4),pieza(3,1)],S).
+%% S = [3, 2, 2, 2, 2] ;
+%% S = [2, 3, 2, 2, 2] ;
+%% S = [2, 2, 3, 2, 2] ;
+%% S = [2, 2, 2, 3, 2] ;
+%% S = [2, 2, 2, 2, 3] ;
+%% false.
+
+%% ?- construir2(5,[pieza(2,3)],S).
+%% false.
+
+%% ?- construir2(3,[pieza(4,3),pieza(5,10),pieza(10,10),pieza(15,5)],S).
+%% false.
 
 
 % ####################################
@@ -169,14 +330,83 @@ todosConstruir2(Tot, P, S, N):- setof(X, construir2(Tot,P,X), S), length(S,N).
 % construirConPatron(+Total, +Piezas, ?Patrón, -Solución) será verdadero cuando Solución sea una solución factible
 %  en los términos definidos anteriormente y, además, sus piezas respeten el patrón indicado en Patrón.
 %  Se sugiere definir un predicado tienePatrón(+Lista, ?Patrón) que decida si Lista presenta el Patrón especificado.
-%% Generate & test.
+
+%% Comentario: Encaramos la resolucion de este ejercicio con la tecnica generate & test, nos generamos las
+%% soluciones candidatas y luego nos quedamos con las validas, es decir las q cumplen el patron.
 
 construirConPatron(Tot, P, Pat, S):- construir1(Tot,P,S), tienePatron(Pat,S).
 
+%% tienePatron(?Patron,+Lista)
 tienePatron(P,L) :- tienePatronAux(P,P,L).
+
+%% tienePatronAux(?Patron_orig,?Patron,+Lista)
+%% Matchea el patron y si se queda sin patron, pero con lista por consumir entonces comienza de nuevo
+%%  el patron, solo da true si se queda al mismo tiempo sin patron ni lista, generando que el patron
+%%  se repita una cantidad entera de veces.
 
 tienePatronAux(_,[],[]).
 tienePatronAux(P0,[],[Y|L]) :- tienePatronAux(P0,P0,[Y|L]).
-%% tienePatronAux(P0,[X|P],[Y|L]) :- X = Y, tienePatronAux(P0,P,L).
 tienePatronAux(P0,[X|P],[Y|L]) :- var(X), X = Y, tienePatronAux(P0,P,L).
 tienePatronAux(P0,[X|P],[Y|L]) :- nonvar(X), X =:= Y, tienePatronAux(P0,P,L).
+
+%% Ejemplos:
+
+%% ?- construirConPatron(5,[pieza(1,3),pieza(2,2),pieza(3,1)],[A,B],S).
+%% A = 3,
+%% B = 2,
+%% S = [3, 2] ;
+%% A = 2,
+%% B = 3,
+%% S = [2, 3] ;
+%% false.
+
+%% ?- construirConPatron(5,[pieza(1,3),pieza(2,2),pieza(3,1)],[A,B,C],S).
+%% A = 3,
+%% B = C, C = 1,
+%% S = [3, 1, 1] ;
+%% A = B, B = 2,
+%% C = 1,
+%% S = [2, 2, 1] ;
+%% A = C, C = 1,
+%% B = 3,
+%% S = [1, 3, 1] ;
+%% A = C, C = 2,
+%% B = 1,
+%% S = [2, 1, 2] ;
+%% A = 1,
+%% B = C, C = 2,
+%% S = [1, 2, 2] ;
+%% A = B, B = 1,
+%% C = 3,
+%% S = [1, 1, 3] ;
+%% false.
+
+%% ?- construirConPatron(5,[pieza(1,3),pieza(2,2),pieza(3,1)],[A,2,C],S).
+%% A = 2,
+%% C = 1,
+%% S = [2, 2, 1] ;
+%% A = 1,
+%% C = 2,
+%% S = [1, 2, 2] ;
+%% false.
+
+%% ?- construirConPatron(5,[pieza(1,3),pieza(2,2),pieza(3,1)],[A],S).
+%% false.
+
+%% ?- construirConPatron(5,[pieza(1,3),pieza(2,2),pieza(3,1)],[1],S).
+%% false.
+
+%% ?- construirConPatron(5,[pieza(1,3),pieza(2,2),pieza(3,1)],[A,B,C,D],S).
+%% A = 2,
+%% B = C, C = D, D = 1,
+%% S = [2, 1, 1, 1] ;
+%% A = C, C = D, D = 1,
+%% B = 2,
+%% S = [1, 2, 1, 1] ;
+%% A = B, B = D, D = 1,
+%% C = 2,
+%% S = [1, 1, 2, 1] ;
+%% A = B, B = C, C = 1,
+%% D = 2,
+%% S = [1, 1, 1, 2] ;
+%% false.
