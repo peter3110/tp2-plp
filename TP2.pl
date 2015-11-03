@@ -138,6 +138,21 @@ funcrec2(Tot,P,K,S_k) :- member(pieza(K,C),P), C > 0, Totmk is Tot - K, Totmk >=
 						 funcrec2(Tot3, P3, K, S2), asserta(dp(Tot3,K,S2)),
 						 append(S1,[K|S2],S_k), asserta(dp(Tot,K,S_k)), !.
 
+%% OTRA VERSION
+
+construir3(Tot,P,S) :- retractall(dp(_,_,_)), append(_,[pieza(Kmax,_)],P), construir3dp(Tot,P,Kmax,S), cumpleLimite(P,S).
+
+construir3dp(0,_,_,[]).
+construir3dp(Tot,_,K,S) :- dp(Tot,K,S).
+construir3dp(Tot,P,K,S) :- Tot > 0, K > 0, Km1 is K - 1, construir3dp(Tot,P,Km1,S), not(dp(Tot,K,S)), asserta(dp(Tot,K,S)).
+construir3dp(Tot,P,K,S) :- Tot > 0, K > 0, member(pieza(K,C),P), C > 0 , Km1 is K - 1, Totmk is Tot - K,
+															between(0,Totmk,TotI), decrementar(P,[K],PI), construir3dp(TotI,PI,Km1,SI),
+															TotD is Totmk - TotI, decrementar(PI,SI,PD), construir3dp(TotD,P,K,SD),
+															append(SI,[K|SD],S), not(dp(Tot,K,S)), asserta(dp(Tot,K,S)).
+
+
+todosConstruir3(Tot, P, S, N):- setof(X, construir3(Tot,P,X), S), length(S,N).
+
 % ####################################
 % Comparación de resultados y tiempos
 % ####################################
