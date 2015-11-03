@@ -113,16 +113,16 @@ construir1(Tot,P,S):- generar(Tot,P,S), cumpleLimite(P,S).%, asserta(construido(
 
 :- dynamic dp/3. % dp(Tot,K,S) : en la solucion S se usan piezas de la lista original P de largo <= K para sumar Tot
 				 % llamo a construir2dp con K = maximo valor de pieza que se puede utilizar.
-construir2(Tot,P,S) :- retractall(dp(_,_,_)), append(_,[pieza(Kmax,_)],P), construir2dp(Tot,P,Kmax,S2), 
+construir2(Tot,P,S) :- retractall(dp(_,_,_)), append(_,[pieza(Kmax,_)],P), construir2dp(Tot,P,Kmax,S2),
 					   append(S2,[],S).
 
 construir2dp(0,_,_,[]).
 construir2dp(Tot,_,K,S) :- dp(Tot,K,S).
-construir2dp(Tot,P,K,S) :- Tot > 0, K > 0, Km1 is K - 1, construir2dp(Tot,P,Km1,S), 
+construir2dp(Tot,P,K,S) :- Tot > 0, K > 0, Km1 is K - 1, construir2dp(Tot,P,Km1,S),
 									not(dp(Tot,K,S)), asserta(dp(Tot,K,S)).
 construir2dp(Tot,P,K,S) :- Tot > 0, K > 0, member(pieza(K,C),P), C > 0 , Km1 is K - 1, Totmk is Tot - K,
 									between(0,Totmk,TotI), decrementar(P,[K],PI), construir2dp(TotI,PI,Km1,SI),
-									TotD is Totmk - TotI, decrementar(PI,SI,PD), construir2dp(TotD,P,K,SD),
+									TotD is Totmk - TotI, decrementar(PI,SI,PD), construir2dp(TotD,PD,K,SD),
 									append(SI,[K|SD],S), not(dp(Tot,K,S)), asserta(dp(Tot,K,S)).
 
 
@@ -148,8 +148,6 @@ decrementar(P,[K|S],P2) :- append(A,[pieza(K,1)|B],P), append(A,B,Aux), decremen
 
 %% para medir tiempo
 %% hacemos time(todosConstruir1(5,[pieza(1,5),pieza(5,1)],S,N))
-
-todosconstruir2(Tot, P, S, N):- setof(X, construir2(Tot,P,X), S), length(S,N).
 
 todosConstruir1(Tot, P, S, N):- setof(X, construir1(Tot,P,X), S), length(S,N).
 
