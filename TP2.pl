@@ -236,19 +236,19 @@ construir1(Tot,P,S):- generar(Tot,P,S), cumpleLimite(P,S).
 % las fichas que quedaron disponibles en PD.
 % Ademas, cada vez que un llamado recursivo es exitoso, me guardo en la(s) solucion(es) obtenida(s).
 
-:- dynamic dp/3. % dp(Tot,K,S) : en la solucion S se usan piezas de la lista original P de largo <= K para sumar Tot
+:- dynamic dp/4. % dp(Tot,P,K,S) : en la solucion S se usan piezas de la lista original P de largo <= K para sumar Tot
 				 % llamo a construir2dp con K = maximo valor de pieza que se puede utilizar.
-construir2(Tot,P,S) :- retractall(dp(_,_,_)), append(_,[pieza(Kmax,_)],P), construir2dp(Tot,P,Kmax,S2),
+construir2(Tot,P,S) :- retractall(dp(_,_,_,_)), append(_,[pieza(Kmax,_)],P), construir2dp(Tot,P,Kmax,S2),
 					   append(S2,[],S).
 
 construir2dp(0,_,_,[]).
-construir2dp(Tot,_,K,S) :- dp(Tot,K,S).
+construir2dp(Tot,P,K,S) :- dp(Tot,P,K,S).
 construir2dp(Tot,P,K,S) :- Tot > 0, K > 0, Km1 is K - 1, construir2dp(Tot,P,Km1,S),
-									not(dp(Tot,K,S)), asserta(dp(Tot,K,S)).
+									not(dp(Tot,P,K,S)), asserta(dp(Tot,P,K,S)).
 construir2dp(Tot,P,K,S) :- Tot > 0, K > 0, member(pieza(K,C),P), C > 0 , Km1 is K - 1, Totmk is Tot - K,
 									between(0,Totmk,TotI), decrementar(P,[K],PI), construir2dp(TotI,PI,Km1,SI),
 									TotD is Totmk - TotI, decrementar(PI,SI,PD), construir2dp(TotD,PD,K,SD),
-									append(SI,[K|SD],S), not(dp(Tot,K,S)), asserta(dp(Tot,K,S)).
+									append(SI,[K|SD],S), not(dp(Tot,P,K,S)), asserta(dp(Tot,P,K,S)).
 
 
 % Comentario: funcion auxiliar: decrementar(+Piezas,+Sol,-Res) quita de Piezas las piezas de los tamaños que
@@ -312,6 +312,26 @@ decrementar(P,[K|S],P2) :- append(A,[pieza(K,1)|B],P), append(A,B,Aux), decremen
 
 todosConstruir1(Tot, P, S, N):- setof(X, construir1(Tot,P,X), S), length(S,N).
 
+%% Ejemplos:
+
+%% ?- time(todosConstruir1(28,[pieza(3,1),pieza(4,1),pieza(7,4)],S,N)).
+%% % 33,731 inferences, 0.005 CPU in 0.014 seconds (33% CPU, 7415036 Lips)
+%% S = [[3, 4, 7, 7, 7], [3, 7, 4, 7, 7], [3, 7, 7, 4, 7], [3, 7, 7, 7, 4],
+%% 			[4, 3, 7, 7|...], [4, 7, 3|...], [4, 7|...], [4|...], [...|...]|...],
+%% N = 21.
+
+%% ?- time(todosConstruir1(5,[pieza(1,3),pieza(2,2),pieza(3,2),pieza(5,1)],S,N)).
+%% % 944 inferences, 0.000 CPU in 0.000 seconds (93% CPU, 3210884 Lips)
+%% S = [[1, 1, 1, 2], [1, 1, 2, 1], [1, 1, 3], [1, 2, 1, 1], [1, 2, 2],
+%% 			[1, 3, 1], [2, 1|...], [2|...], [...|...]|...],
+%% N = 13.
+
+%% ?- time(todosConstruir1(15,[pieza(1,2),pieza(2,2),pieza(3,3),pieza(5,2),pieza(7,1)],S,N)).
+%% % 1,084,467 inferences, 0.111 CPU in 0.122 seconds (92% CPU, 9737777 Lips)
+%% S = [[1, 1, 2, 2, 3, 3, 3], [1, 1, 2, 3, 2, 3, 3], [1, 1, 2, 3, 3, 2|...],
+%% 			[1, 1, 2, 3, 3|...], [1, 1, 2, 3|...], [1, 1, 2|...], [1, 1|...], [1|...], [...|...]|...],
+%% N = 644.
+
 
 %%% Ejercicio 9
 
@@ -319,6 +339,26 @@ todosConstruir1(Tot, P, S, N):- setof(X, construir1(Tot,P,X), S), length(S,N).
 %  las soluciones de longitud Total obtenidas con construir2/3, y N indica la cantidad de soluciones totales.
 
 todosConstruir2(Tot, P, S, N):- setof(X, construir2(Tot,P,X), S), length(S,N).
+
+%% Ejemplos:
+
+%% ?- time(todosConstruir2(28,[pieza(3,1),pieza(4,1),pieza(7,4)],S,N)).
+%% % 89,503 inferences, 0.009 CPU in 0.010 seconds (90% CPU, 10417016 Lips)
+%% S = [[3, 4, 7, 7, 7], [3, 7, 4, 7, 7], [3, 7, 7, 4, 7], [3, 7, 7, 7, 4], [4, 3, 7, 7|...],
+%% 		 [4, 7, 3|...], [4, 7|...], [4|...], [...|...]|...],
+%% N = 21.
+
+%% ?- time(todosConstruir2(5,[pieza(1,3),pieza(2,2),pieza(3,2),pieza(5,1)],S,N)).
+%% % 1,927 inferences, 0.062 CPU in 0.085 seconds (74% CPU, 30888 Lips)
+%% S = [[1, 1, 1, 2], [1, 1, 2, 1], [1, 1, 3], [1, 2, 1, 1], [1, 2, 2], [1, 3, 1],
+%% 		 [2, 1|...], [2|...], [...|...]|...],
+%% N = 13.
+
+%% ?- time(todosConstruir2(15,[pieza(1,2),pieza(2,2),pieza(3,3),pieza(5,2),pieza(7,1)],S,N)).
+%% % 366,259 inferences, 0.357 CPU in 0.368 seconds (97% CPU, 1025947 Lips)
+%% S = [[1, 1, 2, 2, 3, 3, 3], [1, 1, 2, 3, 2, 3, 3], [1, 1, 2, 3, 3, 2|...], [1, 1, 2, 3, 3|...],
+%% 		 [1, 1, 2, 3|...], [1, 1, 2|...], [1, 1|...], [1|...], [...|...]|...],
+%% N = 644.
 
 
 % ####################################
@@ -410,3 +450,4 @@ tienePatronAux(P0,[X|P],[Y|L]) :- nonvar(X), X =:= Y, tienePatronAux(P0,P,L).
 %% D = 2,
 %% S = [1, 1, 1, 2] ;
 %% false.
+
